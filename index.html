@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>天堂2盟约 BOSS 刷新时间表（实时刷新）</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; background:#f5f6f7; color:#333; padding:20px; }
+  .container { max-width:1200px; margin:0 auto; background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); padding:24px; }
+  h1 { margin-top:0; }
+  .meta { color:#666; margin-bottom:10px; }
+  #clock { color:#1a6fb0; font-weight:600; }
+  #status { color:#27ae60; font-weight:600; }
+  table { width:100%; border-collapse:collapse; font-size:15.5px; margin-top:8px; }
+  th { background:#f0f2f5; padding:10px; text-align:left; font-weight:600; border-bottom:2px solid #e0e3e8; }
+  td { padding:10px; border-bottom:1px solid #eee; }
+  tr:hover { background:#fafafa; }
+  .day-block { margin-top:22px; }
+  .day-title { font-size:19px; margin:0 0 8px; padding-left:10px; border-left:4px solid #1a6fb0; color:#1a3a5c; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>天堂2盟约 BOSS 刷新时间表</h1>
+  <div class="meta">报告生成时间：2026-09-04 21:44:55（重新运行脚本可读取最新游戏数据）</div>
+  <div class="meta" id="clock">当前北京时间：加载中…</div>
+  <div class="meta" id="status">实时刷新中…</div>
+  <div class="meta" id="pushcfg">微信推送(WxPusher)：
+    <input id="wxapp" type="text" placeholder="应用 appToken（留空不推送）" style="width:240px;padding:4px 6px;border:1px solid #ccc;border-radius:4px">
+    <input id="wxuid" type="text" placeholder="接收 UID（逗号分隔，留空不推送）" style="width:240px;padding:4px 6px;border:1px solid #ccc;border-radius:4px;margin-left:6px">
+    <button id="psave" style="padding:4px 12px;margin-left:6px;cursor:pointer">保存</button>
+    <button id="ptest" style="padding:4px 12px;margin-left:6px;cursor:pointer">测试推送</button>
+    <span id="pstat" style="margin-left:10px;color:#666"></span>
+  </div>
+  <div class="meta" id="voicecfg">语音播报（浏览器内置，免安装）：
+    <button id="vtestF" style="padding:4px 12px;margin-left:6px;cursor:pointer">女声测试语音</button>
+    <button id="vtestM" style="padding:4px 12px;margin-left:6px;cursor:pointer">男声测试语音</button>
+    <span id="vstat" style="margin-left:10px;color:#666"></span>
+  </div>
+  <div class="meta" style="color:#c0392b">离线模式（手动喂图，未读游戏实时画面）</div>
+  <div class="day-block" id="day-0">
+  <h2 class="day-title">9月4日（今天）</h2>
+  <table>
+    <thead><tr><th>#</th><th>首领</th><th>时间</th><th style="text-align:center">概率</th><th>刷新间隔</th><th style="text-align:center">倒计时</th></tr></thead>
+    <tbody id="rows-0"></tbody>
+  </table>
+</div>
+<div class="day-block" id="day-1">
+  <h2 class="day-title">9月5日（明天）</h2>
+  <table>
+    <thead><tr><th>#</th><th>首领</th><th>时间</th><th style="text-align:center">概率</th><th>刷新间隔</th><th style="text-align:center">倒计时</th></tr></thead>
+    <tbody id="rows-1"></tbody>
+  </table>
+</div>
+<div class="day-block" id="day-2">
+  <h2 class="day-title">9月6日</h2>
+  <table>
+    <thead><tr><th>#</th><th>首领</th><th>时间</th><th style="text-align:center">概率</th><th>刷新间隔</th><th style="text-align:center">倒计时</th></tr></thead>
+    <tbody id="rows-2"></tbody>
+  </table>
+</div>
+<div class="day-block" id="day-3">
+  <h2 class="day-title">9月7日</h2>
+  <table>
+    <thead><tr><th>#</th><th>首领</th><th>时间</th><th style="text-align:center">概率</th><th>刷新间隔</th><th style="text-align:center">倒计时</th></tr></thead>
+    <tbody id="rows-3"></tbody>
+  </table>
+</div>
+  <div id="empty" class="meta" style="display:none;margin-top:16px">（当前没有即将刷新的首领，请重新运行脚本读取最新游戏数据）</div>
+  <div class="meta" style="color:#27ae60; margin-top:16px"><b>已全部识别 30 只首领并推算刷新。</b></div>
+</div>
+<script>
+
+const DAYS = [{"label": "9月4日（今天）", "events": [{"time": "21:57:00", "name": "猛龙兽", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788530220000}, {"time": "22:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788530400000}, {"time": "23:02:00", "name": "布赖卡", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788534120000}, {"time": "23:04:00", "name": "坦佛斯特", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788534240000}, {"time": "23:04:00", "name": "采尔图巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788534240000}]}, {"label": "9月5日（明天）", "events": [{"time": "00:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788538440000}, {"time": "00:14:00", "name": "史坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "7小时1分钟", "ts": 1788538440000}, {"time": "00:17:00", "name": "特论巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "7小时", "ts": 1788538620000}, {"time": "00:21:00", "name": "贝希莫斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "9小时2分钟", "ts": 1788538860000}, {"time": "01:10:00", "name": "提米特利斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788541800000}, {"time": "01:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788541920000}, {"time": "01:14:00", "name": "黑色蕾尔莉", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时2分钟", "ts": 1788542040000}, {"time": "01:17:00", "name": "被污染的克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788542220000}, {"time": "01:23:00", "name": "巨蚁女王", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788542580000}, {"time": "01:29:00", "name": "提米妮尔", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时3分钟", "ts": 1788542940000}, {"time": "01:29:00", "name": "核心基座", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "10小时", "ts": 1788542940000}, {"time": "02:59:00", "name": "凯索思", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "10小时", "ts": 1788548340000}, {"time": "03:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788548400000}, {"time": "03:08:00", "name": "安库拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788548880000}, {"time": "03:13:00", "name": "魔图拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788549180000}, {"time": "03:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788549240000}, {"time": "05:01:00", "name": "赛鲁", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788555660000}, {"time": "05:02:00", "name": "布赖卡", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788555720000}, {"time": "05:03:00", "name": "卡雷斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "9小时", "ts": 1788555780000}, {"time": "05:04:00", "name": "坦佛斯特", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788555840000}, {"time": "05:04:00", "name": "塔金", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "8小时", "ts": 1788555840000}, {"time": "05:04:00", "name": "采尔图巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788555840000}, {"time": "05:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788556320000}, {"time": "05:15:00", "name": "突变克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788556500000}, {"time": "06:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788560040000}, {"time": "07:10:00", "name": "塔拉金", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788563400000}, {"time": "07:14:00", "name": "梅杜莎", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788563640000}, {"time": "07:15:00", "name": "史坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "7小时1分钟", "ts": 1788563700000}, {"time": "07:15:00", "name": "沙勒卡", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788563700000}, {"time": "07:17:00", "name": "特论巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "7小时", "ts": 1788563820000}, {"time": "07:22:00", "name": "卡坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788564120000}, {"time": "07:23:00", "name": "巨蚁女王", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788564180000}, {"time": "08:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788566400000}, {"time": "09:07:00", "name": "潘柴特", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时1分钟", "ts": 1788570420000}, {"time": "09:08:00", "name": "安库拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788570480000}, {"time": "09:11:00", "name": "提米特利斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788570660000}, {"time": "09:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788570720000}, {"time": "09:12:00", "name": "瓦柏", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788570720000}, {"time": "09:12:00", "name": "萨班", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时1分钟", "ts": 1788570720000}, {"time": "09:13:00", "name": "魔图拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788570780000}, {"time": "09:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788570840000}, {"time": "09:18:30", "name": "被污染的克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788571110000}, {"time": "09:23:00", "name": "贝希莫斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "9小时2分钟", "ts": 1788571380000}, {"time": "09:32:00", "name": "提米妮尔", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时3分钟", "ts": 1788571920000}, {"time": "09:57:00", "name": "猛龙兽", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788573420000}, {"time": "11:02:00", "name": "布赖卡", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788577320000}, {"time": "11:04:00", "name": "坦佛斯特", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788577440000}, {"time": "11:04:00", "name": "采尔图巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788577440000}, {"time": "11:29:00", "name": "核心基座", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "10小时", "ts": 1788578940000}, {"time": "12:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788581640000}, {"time": "12:59:00", "name": "凯索思", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "10小时", "ts": 1788584340000}, {"time": "13:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788584400000}, {"time": "13:04:00", "name": "塔金", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "8小时", "ts": 1788584640000}, {"time": "13:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788585120000}, {"time": "13:16:00", "name": "黑色蕾尔莉", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时2分钟", "ts": 1788585360000}, {"time": "13:16:30", "name": "突变克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788585390000}, {"time": "13:23:00", "name": "巨蚁女王", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788585780000}, {"time": "14:03:00", "name": "卡雷斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "9小时", "ts": 1788588180000}, {"time": "14:16:00", "name": "史坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "7小时1分钟", "ts": 1788588960000}, {"time": "14:17:00", "name": "特论巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "7小时", "ts": 1788589020000}, {"time": "15:08:00", "name": "安库拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788592080000}, {"time": "15:13:00", "name": "魔图拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788592380000}, {"time": "15:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788592440000}, {"time": "17:01:00", "name": "赛鲁", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788598860000}, {"time": "17:02:00", "name": "布赖卡", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788598920000}, {"time": "17:04:00", "name": "坦佛斯特", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788599040000}, {"time": "17:04:00", "name": "采尔图巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788599040000}, {"time": "17:11:00", "name": "塔拉金", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788599460000}, {"time": "17:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788599520000}, {"time": "17:12:00", "name": "提米特利斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788599520000}, {"time": "17:15:30", "name": "梅杜莎", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788599730000}, {"time": "17:16:00", "name": "沙勒卡", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788599760000}, {"time": "17:20:00", "name": "被污染的克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788600000000}, {"time": "17:23:30", "name": "卡坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788600210000}, {"time": "17:35:00", "name": "提米妮尔", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时3分钟", "ts": 1788600900000}, {"time": "18:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788602400000}, {"time": "18:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788603240000}, {"time": "18:25:00", "name": "贝希莫斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "9小时2分钟", "ts": 1788603900000}, {"time": "19:23:00", "name": "巨蚁女王", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788607380000}, {"time": "21:04:00", "name": "塔金", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "8小时", "ts": 1788613440000}, {"time": "21:08:00", "name": "安库拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788613680000}, {"time": "21:08:00", "name": "潘柴特", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时1分钟", "ts": 1788613680000}, {"time": "21:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788613920000}, {"time": "21:12:00", "name": "瓦柏", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788613920000}, {"time": "21:13:00", "name": "萨班", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时1分钟", "ts": 1788613980000}, {"time": "21:13:00", "name": "魔图拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788613980000}, {"time": "21:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788614040000}, {"time": "21:17:00", "name": "史坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "7小时1分钟", "ts": 1788614220000}, {"time": "21:17:00", "name": "特论巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "7小时", "ts": 1788614220000}, {"time": "21:18:00", "name": "突变克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788614280000}, {"time": "21:29:00", "name": "核心基座", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "10小时", "ts": 1788614940000}, {"time": "21:57:00", "name": "猛龙兽", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788616620000}, {"time": "22:59:00", "name": "凯索思", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "10小时", "ts": 1788620340000}, {"time": "23:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788620400000}, {"time": "23:02:00", "name": "布赖卡", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788620520000}, {"time": "23:03:00", "name": "卡雷斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "9小时", "ts": 1788620580000}, {"time": "23:04:00", "name": "坦佛斯特", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788620640000}, {"time": "23:04:00", "name": "采尔图巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788620640000}]}, {"label": "9月6日", "events": [{"time": "00:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788624840000}, {"time": "01:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788628320000}, {"time": "01:13:00", "name": "提米特利斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788628380000}, {"time": "01:18:00", "name": "黑色蕾尔莉", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时2分钟", "ts": 1788628680000}, {"time": "01:21:30", "name": "被污染的克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788628890000}, {"time": "01:23:00", "name": "巨蚁女王", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788628980000}, {"time": "01:38:00", "name": "提米妮尔", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时3分钟", "ts": 1788629880000}, {"time": "03:08:00", "name": "安库拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788635280000}, {"time": "03:12:00", "name": "塔拉金", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788635520000}, {"time": "03:13:00", "name": "魔图拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788635580000}, {"time": "03:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788635640000}, {"time": "03:17:00", "name": "梅杜莎", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788635820000}, {"time": "03:17:00", "name": "沙勒卡", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788635820000}, {"time": "03:25:00", "name": "卡坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788636300000}, {"time": "03:27:00", "name": "贝希莫斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "9小时2分钟", "ts": 1788636420000}, {"time": "04:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788638400000}, {"time": "04:17:00", "name": "特论巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "7小时", "ts": 1788639420000}, {"time": "04:18:00", "name": "史坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "7小时1分钟", "ts": 1788639480000}, {"time": "05:01:00", "name": "赛鲁", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788642060000}, {"time": "05:02:00", "name": "布赖卡", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788642120000}, {"time": "05:04:00", "name": "坦佛斯特", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788642240000}, {"time": "05:04:00", "name": "塔金", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "8小时", "ts": 1788642240000}, {"time": "05:04:00", "name": "采尔图巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788642240000}, {"time": "05:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788642720000}, {"time": "05:19:30", "name": "突变克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788643170000}, {"time": "06:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788646440000}, {"time": "07:23:00", "name": "巨蚁女王", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788650580000}, {"time": "07:29:00", "name": "核心基座", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "10小时", "ts": 1788650940000}, {"time": "08:03:00", "name": "卡雷斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "9小时", "ts": 1788652980000}, {"time": "08:59:00", "name": "凯索思", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "10小时", "ts": 1788656340000}, {"time": "09:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788656400000}, {"time": "09:08:00", "name": "安库拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788656880000}, {"time": "09:09:00", "name": "潘柴特", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时1分钟", "ts": 1788656940000}, {"time": "09:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788657120000}, {"time": "09:12:00", "name": "瓦柏", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788657120000}, {"time": "09:13:00", "name": "魔图拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788657180000}, {"time": "09:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788657240000}, {"time": "09:14:00", "name": "提米特利斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788657240000}, {"time": "09:14:00", "name": "萨班", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时1分钟", "ts": 1788657240000}, {"time": "09:23:00", "name": "被污染的克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788657780000}, {"time": "09:41:00", "name": "提米妮尔", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时3分钟", "ts": 1788658860000}, {"time": "09:57:00", "name": "猛龙兽", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788659820000}, {"time": "11:02:00", "name": "布赖卡", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788663720000}, {"time": "11:04:00", "name": "坦佛斯特", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788663840000}, {"time": "11:04:00", "name": "采尔图巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788663840000}, {"time": "11:17:00", "name": "特论巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "7小时", "ts": 1788664620000}, {"time": "11:19:00", "name": "史坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "7小时1分钟", "ts": 1788664740000}, {"time": "12:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788668040000}, {"time": "12:29:00", "name": "贝希莫斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "9小时2分钟", "ts": 1788668940000}, {"time": "13:04:00", "name": "塔金", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "8小时", "ts": 1788671040000}, {"time": "13:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788671520000}, {"time": "13:13:00", "name": "塔拉金", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788671580000}, {"time": "13:18:00", "name": "沙勒卡", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788671880000}, {"time": "13:18:30", "name": "梅杜莎", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788671910000}, {"time": "13:20:00", "name": "黑色蕾尔莉", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时2分钟", "ts": 1788672000000}, {"time": "13:21:00", "name": "突变克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788672060000}, {"time": "13:23:00", "name": "巨蚁女王", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788672180000}, {"time": "13:26:30", "name": "卡坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788672390000}, {"time": "14:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788674400000}, {"time": "15:08:00", "name": "安库拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788678480000}, {"time": "15:13:00", "name": "魔图拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788678780000}, {"time": "15:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788678840000}, {"time": "17:01:00", "name": "赛鲁", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788685260000}, {"time": "17:02:00", "name": "布赖卡", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788685320000}, {"time": "17:03:00", "name": "卡雷斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "9小时", "ts": 1788685380000}, {"time": "17:04:00", "name": "坦佛斯特", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788685440000}, {"time": "17:04:00", "name": "采尔图巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788685440000}, {"time": "17:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788685920000}, {"time": "17:15:00", "name": "提米特利斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788686100000}, {"time": "17:24:30", "name": "被污染的克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788686670000}, {"time": "17:29:00", "name": "核心基座", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "10小时", "ts": 1788686940000}, {"time": "17:44:00", "name": "提米妮尔", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时3分钟", "ts": 1788687840000}, {"time": "18:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788689640000}, {"time": "18:17:00", "name": "特论巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "7小时", "ts": 1788689820000}, {"time": "18:20:00", "name": "史坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "7小时1分钟", "ts": 1788690000000}, {"time": "18:59:00", "name": "凯索思", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "10小时", "ts": 1788692340000}, {"time": "19:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788692400000}, {"time": "19:23:00", "name": "巨蚁女王", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788693780000}, {"time": "21:04:00", "name": "塔金", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "8小时", "ts": 1788699840000}, {"time": "21:08:00", "name": "安库拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788700080000}, {"time": "21:10:00", "name": "潘柴特", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时1分钟", "ts": 1788700200000}, {"time": "21:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788700320000}, {"time": "21:12:00", "name": "瓦柏", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788700320000}, {"time": "21:13:00", "name": "魔图拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788700380000}, {"time": "21:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788700440000}, {"time": "21:15:00", "name": "萨班", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时1分钟", "ts": 1788700500000}, {"time": "21:22:30", "name": "突变克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788700950000}, {"time": "21:31:00", "name": "贝希莫斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "9小时2分钟", "ts": 1788701460000}, {"time": "21:57:00", "name": "猛龙兽", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788703020000}, {"time": "23:02:00", "name": "布赖卡", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788706920000}, {"time": "23:04:00", "name": "坦佛斯特", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788707040000}, {"time": "23:04:00", "name": "采尔图巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788707040000}, {"time": "23:14:00", "name": "塔拉金", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788707640000}, {"time": "23:19:00", "name": "沙勒卡", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788707940000}, {"time": "23:20:00", "name": "梅杜莎", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788708000000}, {"time": "23:28:00", "name": "卡坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788708480000}]}, {"label": "9月7日", "events": [{"time": "00:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788710400000}, {"time": "00:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788711240000}, {"time": "01:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788714720000}, {"time": "01:16:00", "name": "提米特利斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788714960000}, {"time": "01:17:00", "name": "特论巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "7小时", "ts": 1788715020000}, {"time": "01:21:00", "name": "史坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "7小时1分钟", "ts": 1788715260000}, {"time": "01:22:00", "name": "黑色蕾尔莉", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时2分钟", "ts": 1788715320000}, {"time": "01:23:00", "name": "巨蚁女王", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788715380000}, {"time": "01:26:00", "name": "被污染的克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788715560000}, {"time": "01:47:00", "name": "提米妮尔", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时3分钟", "ts": 1788716820000}, {"time": "02:03:00", "name": "卡雷斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "9小时", "ts": 1788717780000}, {"time": "03:08:00", "name": "安库拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788721680000}, {"time": "03:13:00", "name": "魔图拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788721980000}, {"time": "03:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788722040000}, {"time": "03:29:00", "name": "核心基座", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "10小时", "ts": 1788722940000}, {"time": "04:59:00", "name": "凯索思", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "10小时", "ts": 1788728340000}, {"time": "05:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788728400000}, {"time": "05:01:00", "name": "赛鲁", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788728460000}, {"time": "05:02:00", "name": "布赖卡", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788728520000}, {"time": "05:04:00", "name": "坦佛斯特", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788728640000}, {"time": "05:04:00", "name": "塔金", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "8小时", "ts": 1788728640000}, {"time": "05:04:00", "name": "采尔图巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788728640000}, {"time": "05:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788729120000}, {"time": "05:24:00", "name": "突变克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788729840000}, {"time": "06:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788732840000}, {"time": "06:33:00", "name": "贝希莫斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "9小时2分钟", "ts": 1788733980000}, {"time": "07:23:00", "name": "巨蚁女王", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788736980000}, {"time": "08:17:00", "name": "特论巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "7小时", "ts": 1788740220000}, {"time": "08:22:00", "name": "史坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "7小时1分钟", "ts": 1788740520000}, {"time": "09:08:00", "name": "安库拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788743280000}, {"time": "09:11:00", "name": "潘柴特", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时1分钟", "ts": 1788743460000}, {"time": "09:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788743520000}, {"time": "09:12:00", "name": "瓦柏", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788743520000}, {"time": "09:13:00", "name": "魔图拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788743580000}, {"time": "09:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788743640000}, {"time": "09:15:00", "name": "塔拉金", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788743700000}, {"time": "09:16:00", "name": "萨班", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时1分钟", "ts": 1788743760000}, {"time": "09:17:00", "name": "提米特利斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788743820000}, {"time": "09:20:00", "name": "沙勒卡", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788744000000}, {"time": "09:21:30", "name": "梅杜莎", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788744090000}, {"time": "09:27:30", "name": "被污染的克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788744450000}, {"time": "09:29:30", "name": "卡坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788744570000}, {"time": "09:50:00", "name": "提米妮尔", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时3分钟", "ts": 1788745800000}, {"time": "09:57:00", "name": "猛龙兽", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788746220000}, {"time": "10:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788746400000}, {"time": "11:02:00", "name": "布赖卡", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788750120000}, {"time": "11:03:00", "name": "卡雷斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "9小时", "ts": 1788750180000}, {"time": "11:04:00", "name": "坦佛斯特", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788750240000}, {"time": "11:04:00", "name": "采尔图巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788750240000}, {"time": "12:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788754440000}, {"time": "13:04:00", "name": "塔金", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "8小时", "ts": 1788757440000}, {"time": "13:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788757920000}, {"time": "13:23:00", "name": "巨蚁女王", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788758580000}, {"time": "13:24:00", "name": "黑色蕾尔莉", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时2分钟", "ts": 1788758640000}, {"time": "13:25:30", "name": "突变克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788758730000}, {"time": "13:29:00", "name": "核心基座", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "10小时", "ts": 1788758940000}, {"time": "14:59:00", "name": "凯索思", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "10小时", "ts": 1788764340000}, {"time": "15:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788764400000}, {"time": "15:08:00", "name": "安库拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788764880000}, {"time": "15:13:00", "name": "魔图拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788765180000}, {"time": "15:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788765240000}, {"time": "15:17:00", "name": "特论巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "7小时", "ts": 1788765420000}, {"time": "15:23:00", "name": "史坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "7小时1分钟", "ts": 1788765780000}, {"time": "15:35:00", "name": "贝希莫斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "9小时2分钟", "ts": 1788766500000}, {"time": "17:01:00", "name": "赛鲁", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788771660000}, {"time": "17:02:00", "name": "布赖卡", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788771720000}, {"time": "17:04:00", "name": "坦佛斯特", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788771840000}, {"time": "17:04:00", "name": "采尔图巴", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788771840000}, {"time": "17:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788772320000}, {"time": "17:18:00", "name": "提米特利斯", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788772680000}, {"time": "17:29:00", "name": "被污染的克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788773340000}, {"time": "17:53:00", "name": "提米妮尔", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时3分钟", "ts": 1788774780000}, {"time": "18:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788776040000}, {"time": "19:16:00", "name": "塔拉金", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788779760000}, {"time": "19:21:00", "name": "沙勒卡", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788780060000}, {"time": "19:23:00", "name": "巨蚁女王", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788780180000}, {"time": "19:23:00", "name": "梅杜莎", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788780180000}, {"time": "19:31:00", "name": "卡坦", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "10小时1分钟", "ts": 1788780660000}, {"time": "20:00:00", "name": "潘纳洛德", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "5小时", "ts": 1788782400000}, {"time": "20:03:00", "name": "卡雷斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "9小时", "ts": 1788782580000}, {"time": "21:04:00", "name": "塔金", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "8小时", "ts": 1788786240000}, {"time": "21:08:00", "name": "安库拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788786480000}, {"time": "21:12:00", "name": "巴实那", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "4小时", "ts": 1788786720000}, {"time": "21:12:00", "name": "潘柴特", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时1分钟", "ts": 1788786720000}, {"time": "21:12:00", "name": "瓦柏", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "12小时", "ts": 1788786720000}, {"time": "21:13:00", "name": "魔图拉", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "6小时", "ts": 1788786780000}, {"time": "21:14:00", "name": "佩尔利斯", "prob_label": "概率刷新", "prob_color": "#c77200", "interval": "3小时", "ts": 1788786840000}, {"time": "21:17:00", "name": "萨班", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "12小时1分钟", "ts": 1788787020000}, {"time": "21:27:00", "name": "突变克鲁玛", "prob_label": "必刷", "prob_color": "#1a7f37", "interval": "8小时1分钟", "ts": 1788787620000}]}];
+const WXPUSHER_APP_TOKEN = "";   // 内置 appToken（页面输入框可覆盖）
+const WXPUSHER_UIDS = "";             // 内置接收 UID 列表（逗号分隔，页面输入框可覆盖）
+const PYTHON_TTS_ENABLED = true;   // (已弃用) 语音现由浏览器本地播报，不再依赖此开关/服务窗口
+const emptyEl = document.getElementById('empty');
+const clockEl = document.getElementById('clock');
+const statusEl = document.getElementById('status');
+
+// —— 语音播报：临近刷新（前 1 分钟）按性别分声线播报 ——
+// 全部由浏览器内置 Web Speech 播放（全本地运行，关闭 Python 服务窗口也能播报），无需虚拟声卡。
+// 女声专用首领（FEMALE_BOSSES）播报“<首领>即将刷新，会爆粉的哦”；其余首领用男声播报“<首领>即将刷新，小臂噶不爆粉”。
+const lastSpoken = new Map();      // 各事件最近一次语音播报的时间戳（name@ts -> ts），用于“每 1 分钟播一次”
+const SPEAK_BEFORE_MS = 120000;    // 提前 2 分钟开始播报（进入此窗口后每 ANNOUNCE_INTERVAL_MS 播一次）
+const ANNOUNCE_INTERVAL_MS = 60000;// 语音播报最小间隔（每 1 分钟播一次）
+// 女声专用首领名单（用户指定）：这些首领用【女声】播报，内容改为“<首领>即将刷新，会爆粉的哦”。
+// 其余首领用【男声】播报，内容仍为“<首领>即将刷新”。
+// 注：用户口述“塞鲁”已按权威 29 名单纠正为“赛鲁”。
+const FEMALE_BOSSES = new Set([
+  '卡坦','史坦','卡雷斯','坦佛斯特','塔拉金','巨蚁女王','提米特利斯','核心基座',
+  '梅杜莎','潘柴特','猛龙兽','瓦柏','突变克鲁玛','萨班','被污染的克鲁玛','贝希莫斯',
+  '赛鲁','黑色蕾尔莉','提米妮尔'
+]);
+let _voiceFemale = null;   // 优选中文女声（女声首领用）
+let _voiceMale = null;     // 优选中文男声（其余首领用）
+
+// 根据语音名/URI 推断性别（f=女, m=男, ?=未知）
+function _voiceGender(v){
+  const n = (v.name || '') + ' ' + (v.voiceURI || '') + ' ' + (v.lang || '');
+  if (/female|女/i.test(n)) return 'f';
+  if (/male|男/i.test(n)) return 'm';
+  if (/xiaoxiao|xiaoyi|xiaobo|xiaomeng|xiaorui|xiaoshuang|xiaomo|xiaoxuan|xiaona|yaoyao|huihui|tingting|ruxue/i.test(n)) return 'f';
+  if (/yunxi|yunyang|yunjian|yunhao|kangkang|yang|jian|hao/i.test(n)) return 'm';
+  return '?';
+}
+// 在候选池里挑最合适的中文语音：gender 指定偏好性别（'f'/'m'/null 默认偏女）
+function _bestVoice(pool, gender){
+  let best = null, bestScore = -1;
+  for (const v of pool){
+    const n = (v.name || '') + ' ' + (v.voiceURI || '');
+    let s = 0;
+    if (/neural|在线|云|online|natural/i.test(n)) s += 3;
+    const g = _voiceGender(v);
+    if (gender === 'f' && g === 'f') s += 4;
+    else if (gender === 'm' && g === 'm') s += 4;
+    else if (gender === null && g === 'f') s += 2;
+    else if (g !== '?' && g !== gender) s -= 6;   // 性别不符，降权
+    if (/zh|chinese|中文/i.test(v.lang || '')) s += 1;
+    if (s > bestScore){ bestScore = s; best = v; }
+  }
+  return best;
+}
+function _pickVoices(){
+  try {
+    if (!('speechSynthesis' in window)) return;
+    const vs = window.speechSynthesis.getVoices() || [];
+    const base = vs.filter(function(v){ return /zh|chinese|中文/i.test(v.lang || ''); });
+    const pool = base.length ? base : vs;
+    _voiceFemale = _bestVoice(pool, 'f');
+    _voiceMale   = _bestVoice(pool, 'm');
+    if (!_voiceFemale) _voiceFemale = _bestVoice(pool, null);  // 兜底：无女声则用最佳中文语音
+    if (!_voiceMale)   _voiceMale   = _bestVoice(pool, null);
+  } catch(e){}
+}
+// 浏览器 Web Speech 播报：按首领性别选择男女声及文案
+function speakFallback(name){
+  try {
+    if (!('speechSynthesis' in window)) return;
+    const isFemale = FEMALE_BOSSES.has(name);
+    const text = isFemale ? (name + '即将刷新，会爆粉的哦') : (name + '即将刷新，小臂噶不爆粉');
+    const voice = isFemale ? _voiceFemale : _voiceMale;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN';
+    if (voice) u.voice = voice;
+    u.rate = 1.0; u.pitch = 1.0; u.volume = 1.0;   // 浏览器限制：音量上限 1.0
+    window.speechSynthesis.speak(u);
+  } catch(e){}
+}
+// 自动播报入口：浏览器内置 Web Speech 直接播报（全本地，不请求 Python 服务，关掉服务窗口也能播）。
+function speak(name){
+  speakFallback(name);
+}
+// 浏览器自动播放策略：首次用户交互（点击/按键）后解锁 Web Speech（兜底用）
+function _unlockSpeech(){
+  try { if ('speechSynthesis' in window) window.speechSynthesis.resume(); } catch(e){}
+  window.removeEventListener('click', _unlockSpeech);
+  window.removeEventListener('keydown', _unlockSpeech);
+}
+if ('speechSynthesis' in window){
+  _pickVoices();
+  window.speechSynthesis.onvoiceschanged = _pickVoices;
+}
+window.addEventListener('click', _unlockSpeech);
+window.addEventListener('keydown', _unlockSpeech);
+
+// 语音播报测试：浏览器内置 Web Speech 直接播放，不依赖本地服务（关掉服务窗口也能用）。
+// 分别提供【女声测试】与【男声测试】，各自播报一条真实文案，确认两种声线都出声。
+function testSpeakFemale(){
+  vstatEl.textContent = '🔊 正在试播【女声】…';
+  vstatEl.style.color = '#1a7f37';
+  try {
+    speakFallback('卡坦');   // 女声：卡坦即将刷新，会爆粉的哦
+    vstatEl.textContent = '🔊 已试播女声：「卡坦即将刷新，会爆粉的哦」。若没听到，请在系统“语音/语言”设置里确认已安装中文女声（如 Xiaoxiao）。';
+  } catch(e){
+    const detail = (e && e.message) ? e.message : ('' + e);
+    vstatEl.textContent = '❌ 女声语音播报失败：' + detail;
+    vstatEl.style.color = '#c0392b';
+  }
+}
+function testSpeakMale(){
+  vstatEl.textContent = '🔊 正在试播【男声】…';
+  vstatEl.style.color = '#1a7f37';
+  try {
+    speakFallback('佩尔利斯');   // 男声：佩尔利斯即将刷新，小臂噶不爆粉
+    vstatEl.textContent = '🔊 已试播男声：「佩尔利斯即将刷新，小臂噶不爆粉」。若没听到，请在系统“语音/语言”设置里确认已安装中文男声（如 Yunxi）。';
+  } catch(e){
+    const detail = (e && e.message) ? e.message : ('' + e);
+    vstatEl.textContent = '❌ 男声语音播报失败：' + detail;
+    vstatEl.style.color = '#c0392b';
+  }
+}
+
+// —— 微信推送（WxPusher，免费）：临近刷新前 1 分钟推送“xx即将刷新”到微信 ——
+const PUSH_BEFORE_MS = 60000;      // 提前 1 分钟推送（微信推送独立，与语音窗口不同步）
+const pushed = new Set();          // 已推送过的事件（按 name@ts 去重，避免每秒重复）
+// 运行时可覆盖：页面输入框 + localStorage 优先于内置配置
+function getAppToken(){
+  try { const t = localStorage.getItem('wx_app_token'); return (t && t.trim()) ? t.trim() : WXPUSHER_APP_TOKEN; }
+  catch(e){ return WXPUSHER_APP_TOKEN; }
+}
+function getUids(){
+  let raw;
+  try { raw = localStorage.getItem('wx_uids'); } catch(e){ raw = ''; }
+  raw = (raw && raw.trim()) ? raw.trim() : WXPUSHER_UIDS;
+  if (!raw) return [];
+  return raw.split(',').map(function(s){ return s.trim(); }).filter(function(s){ return s.length; });
+}
+function pushWechat(name){
+  const appToken = getAppToken();
+  const uids = getUids();
+  if (!appToken || uids.length === 0) return;
+  const body = {
+    appToken: appToken,
+    content: name + ' 即将刷新',
+    summary: '首领即将刷新',
+    contentType: 1,
+    uids: uids,
+    url: ''
+  };
+  // 经由本地服务（run.bat 起的 http://localhost）代理转发到 WxPusher，
+  // 避免浏览器跨域 / file:// 被拦；服务端失败仅记日志，不影响自动播报。
+  fetch('/push', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(function(r){ return r.json(); }).then(function(j){
+    if (j && j.success === false){ console.warn('WxPusher 推送失败:', j.msg || j.error); }
+  }).catch(function(e){ /* 本地服务未运行等错误忽略 */ });
+}
+
+// 测试推送：发送一条测试消息，验证 WxPusher 配置是否正确（不影响自动推送的去重）
+function testPushWechat(){
+  const appToken = getAppToken();
+  const uids = getUids();
+  if (!appToken || uids.length === 0){
+    pstatEl.textContent = '请先填写 appToken 和 UID 并保存，再测试';
+    return;
+  }
+  const body = {
+    appToken: appToken,
+    content: '【测试推送】首领即将刷新 —— 这是一条测试消息，若收到说明推送配置正确 ✅',
+    summary: '测试推送',
+    contentType: 1,
+    uids: uids,
+    url: ''
+  };
+  pstatEl.textContent = '正在发送测试推送…';
+  fetch('/push', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(function(r){ return r.json(); }).then(function(j){
+    if (j && j.success){
+      pstatEl.textContent = '✅ 测试推送已发送，请查看微信是否收到';
+      pstatEl.style.color = '#1a7f37';
+    } else {
+      var msg = (j && (j.msg || j.error)) ? (j.msg || j.error) : '未知错误';
+      pstatEl.textContent = '❌ 推送失败：' + msg + '（多为 appToken / UID 有误，或本机网络无法访问 wxpusher）';
+      pstatEl.style.color = '#c0392b';
+    }
+  }).catch(function(e){
+    // 走到这里通常是本地服务没跑起来（没用 run.bat 打开，或服务窗口已关）
+    pstatEl.textContent = '❌ 连接本地服务失败：' + (e && e.message ? e.message : e) +
+      '（请通过 run.bat 打开报告并保持服务窗口运行；WxPusher 推送依赖本地服务代理）';
+    pstatEl.style.color = '#c0392b';
+  });
+}
+
+function pad(n){ return String(n).padStart(2, '0'); }
+// 取“北京时间”（UTC+8），不依赖打开页面的机器所在时区
+function beijingDate(){
+  const d = new Date();
+  const utc = d.getTime() + d.getTimezoneOffset() * 60000;
+  return new Date(utc + 8 * 3600 * 1000);
+}
+function fmtBJ(d){
+  return d.getFullYear() + '年' + pad(d.getMonth()+1) + '月' + pad(d.getDate()) + '日 '
+       + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+function render(){
+  clockEl.textContent = '当前北京时间：' + fmtBJ(beijingDate());
+  const now = Date.now();
+  const KEEP_MS = 300000; // 刷新后延迟 5 分钟再自动隐藏
+  // 全局 live（跨所有天合并，按时间升序），用于确定“下一个即将刷新”与统计
+  let allLive = [];
+  DAYS.forEach(function(day){ day.events.forEach(function(e){ if (e.ts + KEEP_MS > now) allLive.push(e); }); });
+  allLive.sort(function(a, b){ return a.ts - b.ts; });
+  // 全局下一个即将刷新：第一个“尚未出现”的事件
+  let nextTs = null;
+  for (let k = 0; k < allLive.length; k++){
+    const e = allLive[k];
+    if (!(now >= e.ts && (now - e.ts) < KEEP_MS)){ nextTs = e.ts; break; }
+  }
+  let appearingCount = 0, futureCount = 0;
+  DAYS.forEach(function(day, di){
+    const blockEl = document.getElementById('day-' + di);
+    const tbody = document.getElementById('rows-' + di);
+    tbody.innerHTML = '';
+    const live = day.events.filter(function(e){ return e.ts + KEEP_MS > now; })
+                            .sort(function(a, b){ return a.ts - b.ts; });
+    if (live.length === 0){ blockEl.style.display = 'none'; return; }
+    blockEl.style.display = '';
+    live.forEach(function(e, i){
+      // 正在出现：刷新时间已到、且距现在不足 2 分钟
+      const isAppearing = (now >= e.ts && (now - e.ts) < KEEP_MS);
+      // 即将刷新的下一个：全局列表中第一个尚未出现的事件
+      const isNext = (nextTs !== null && e.ts === nextTs);
+      if (isAppearing) appearingCount++; else futureCount++;
+      // 进入“提前播报窗口”后，每 1 分钟播报一次“xx即将刷新”；刷新后不再播报（KEEP_MS 内转入“正在出现”）
+      const toSpawn = e.ts - now;
+      if (!isAppearing && toSpawn > 0 && toSpawn <= SPEAK_BEFORE_MS){
+        const key = e.name + '@' + e.ts;
+        const lastT = lastSpoken.has(key) ? lastSpoken.get(key) : -Infinity;
+        if (now - lastT >= ANNOUNCE_INTERVAL_MS){
+          lastSpoken.set(key, now);
+          speak(e.name);
+        }
+        // 同一时间窗口内推送微信（独立去重：推送与语音互不影响）
+        if (!pushed.has(key)){
+          pushed.add(key);
+          pushWechat(e.name);
+        }
+      }
+      // 正在出现：红色 + 加粗 + 显眼底色；下一个即将刷新：绿色 + 加粗 + 次一级显眼底色
+      let rowColor = '', rowBg = '', cdColor = '#1a6fb0', fontW = '400', probColor = e.prob_color;
+      if (isAppearing){
+        rowColor = '#c0392b'; rowBg = '#ffd6d6'; cdColor = '#c0392b'; fontW = '700'; probColor = '#c0392b';
+      } else if (isNext){
+        rowColor = '#1a7f37'; rowBg = '#e3f6ea'; cdColor = '#1a7f37'; fontW = '700'; probColor = '#1a7f37';
+      }
+      let cd;
+      if (isAppearing){
+        const rem = e.ts + KEEP_MS - now; // 距 2 分钟宽限期结束的剩余时间
+        const rh = Math.floor(rem / 3600000);
+        const rm = Math.floor((rem % 3600000) / 60000);
+        const rs = Math.floor((rem % 60000) / 1000);
+        cd = '刷新中 ' + (rh > 0 ? rh + '小时' : '') + rm + '分' + pad(rs) + '秒';
+      } else {
+        const left = e.ts - now;
+        const h = Math.floor(left / 3600000);
+        const m = Math.floor((left % 3600000) / 60000);
+        const s = Math.floor((left % 60000) / 1000);
+        cd = (h > 0 ? h + '小时' : '') + m + '分' + pad(s) + '秒';
+      }
+      const tr = document.createElement('tr');
+      tr.style.background = rowBg;
+      tr.style.color = rowColor;
+      tr.style.fontWeight = fontW;
+      tr.innerHTML = '<td>' + (i+1) + '</td>'
+                   + '<td>' + e.name + '</td>'
+                   + '<td>' + e.time + '</td>'
+                   + '<td style="font-weight:600;text-align:center;color:' + probColor + '">' + e.prob_label + '</td>'
+                   + '<td>' + e.interval + '</td>'
+                   + '<td style="text-align:center;color:' + cdColor + '">' + cd + '</td>';
+      tbody.appendChild(tr);
+    });
+  });
+  const total = allLive.length;
+  if (total === 0){
+    emptyEl.style.display = 'block';
+    statusEl.textContent = '实时刷新中：当前没有即将刷新的首领（请重新运行脚本读取最新游戏数据）';
+  } else {
+    emptyEl.style.display = 'none';
+    statusEl.textContent = '实时刷新中：共 ' + total + ' 条（已出现 ' + appearingCount + ' 条，即将刷新 ' + futureCount + ' 条；刷新超 5 分钟自动隐藏）';
+  }
+}
+// —— 微信推送配置（WxPusher）：appToken + 接收 UID，localStorage 持久化，覆盖内置值 ——
+const wxappEl = document.getElementById('wxapp');
+const wxuidEl = document.getElementById('wxuid');
+const pstatEl = document.getElementById('pstat');
+const vstatEl = document.getElementById('vstat');
+try {
+  const a = localStorage.getItem('wx_app_token'); if (a) wxappEl.value = a;
+  const u = localStorage.getItem('wx_uids'); if (u) wxuidEl.value = u;
+} catch(e){}
+document.getElementById('psave').addEventListener('click', function(){
+  try {
+    const a = wxappEl.value.trim();
+    const u = wxuidEl.value.trim();
+    if (a && u){ localStorage.setItem('wx_app_token', a); localStorage.setItem('wx_uids', u); pstatEl.textContent = '已保存，临近刷新将推送微信'; }
+    else { localStorage.removeItem('wx_app_token'); localStorage.removeItem('wx_uids'); pstatEl.textContent = '已清除，将使用脚本内置配置'; }
+  } catch(e){ pstatEl.textContent = '保存失败'; }
+});
+document.getElementById('ptest').addEventListener('click', function(){
+  testPushWechat();
+});
+document.getElementById('vtestF').addEventListener('click', function(){
+  testSpeakFemale();
+});
+document.getElementById('vtestM').addEventListener('click', function(){
+  testSpeakMale();
+});
+
+setInterval(render, 1000);
+render();
+
+</script>
+</body>
+</html>
