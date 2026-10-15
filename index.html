@@ -70,7 +70,7 @@
 <body>
 <div class="container">
   <h1>天堂2盟约 BOSS 刷新时间表</h1>
-  <div class="meta">报告生成时间：2026-10-16 00:16:11（重新运行脚本可读取最新游戏数据）</div>
+  <div class="meta">报告生成时间：2026-10-16 00:45:48（重新运行脚本可读取最新游戏数据）</div>
   <div class="meta" id="clock">当前北京时间：加载中…</div>
   <div class="meta" id="status">实时刷新中…</div>
   <div class="stats">
@@ -100,6 +100,12 @@
     <span id="vstat" style="margin-left:10px;color:#666"></span>
   </div>
   
+  <div class="meta" style="margin:8px 0 12px;line-height:1.9">
+    <span style="display:inline-block;padding:2px 10px;border-radius:4px;background:#ffc2da;margin-right:6px">粉底 = 掉粉</span>
+    <span style="display:inline-block;padding:2px 10px;border-radius:4px;background:#ffb347;margin-right:6px">橙底 = 掉金</span>
+    <span style="display:inline-block;padding:2px 10px;border-radius:4px;background:#d4b9ff;margin-right:6px">紫底 = 其他</span>
+    <span style="display:inline-block;padding:2px 10px;border-radius:4px;background:#f7d774">金底 = 跨服</span>
+  </div>
   <div class="meta" style="color:#1a6fb0; margin-top:16px; border-left:4px solid #1a6fb0; padding-left:12px"><b>提示：以下 1 只首领本次无数据且无历史数据，已按“周三 05:54 击退时间”补排刷新：</b>奥尔芬</div>
   <div class="day-block" id="day-0">
   <h2 class="day-title">10月15日</h2>
@@ -150,7 +156,8 @@ const statusEl = document.getElementById('status');
 
 // —— 语音播报：临近刷新（前 1 分钟）按性别分声线播报 ——
 // 全部由浏览器内置 Web Speech 播放（全本地运行，关闭 Python 服务窗口也能播报），无需虚拟声卡。
-// 女声专用首领（FEMALE_BOSSES）播报“<首领>即将刷新，会爆粉的哦”；其余首领用男声播报“<首领>即将刷新，小臂噶不爆粉”。
+// 女声专用首领（FEMALE_BOSSES）播报“<首领>即将刷新，会爆粉的哦”（掉金类播报“会爆金的哦”）；
+// 其余首领用男声播报“<首领>即将刷新，小臂噶不爆粉”。
 // 跨服首领（带角标，e.cross=true）：两套文案均在首领名前加“跨服”二字，播报“跨服<首领>即将刷新…”，与本服一眼区分。
 const lastSpoken = new Map();      // 各事件最近一次语音播报的时间戳（name@ts -> ts），用于“每 1 分钟播一次”
 const SPEAK_BEFORE_MS = 120000;    // 提前 2 分钟开始播报（进入此窗口后每 ANNOUNCE_INTERVAL_MS 播一次）
@@ -193,12 +200,18 @@ const FEMALE_BOSSES = new Set([
   '梅杜莎','潘柴特','猛龙兽','瓦柏','突变克鲁玛','萨班','被污染的克鲁玛','贝希莫斯',
   '赛鲁','黑色蕾尔莉','提米妮尔','雷比鲁','奥尔芬','寇伦'
 ]);
-// 爆粉首领名单（用户指定）：在展示网页上显示粉色底层；其余（非爆粉）显示紫色底层。
+// 爆粉首领名单（用户指定）：在展示网页上显示粉色底层；非爆粉/爆金显示紫色底层。
 // 2026-09-22：用户将「雷比鲁」从非爆粉改为掉粉首领，并入爆粉（粉色）类，故加入此名单。
+// 2026-10-16：用户把 12 个首领从掉粉里拎出来改归「掉金」，已从本名单移除（见 BAOJIN_BOSSES）。
 const BAOFEN_BOSSES = new Set([
-  '卡坦','卡雷斯','史坦','坦佛斯特','塔拉金','巨蚁女王','提米妮尔','提米特利斯','核心基座',
-  '梅杜莎','潘柴特','猛龙兽','瓦柏','突变克鲁玛','萨班','被污染的克鲁玛','贝希莫斯','赛鲁','黑色蕾尔莉','雷比鲁',
-  '奥尔芬','寇伦'
+  '史坦','卡雷斯','坦佛斯特','塔拉金','提米特利斯',
+  '梅杜莎','潘柴特','突变克鲁玛','萨班','贝希莫斯'
+]);
+// 爆金首领名单（用户 2026-10-16 指定）：从原掉粉名单中拆出，改归「掉金」类。
+// 网页上显示橙色底层，与掉粉（粉）/ 掉金之外（紫）区分。
+const BAOJIN_BOSSES = new Set([
+  '卡坦','奥尔芬','寇伦','巨蚁女王','提米妮尔','核心基座',
+  '猛龙兽','瓦柏','被污染的克鲁玛','赛鲁','雷比鲁','黑色蕾尔莉'
 ]);
 let _voiceFemale = null;   // 优选中文女声（女声首领用）
 let _voiceMale = null;     // 优选中文男声（其余首领用）
@@ -245,23 +258,48 @@ function _pickVoices(){
 // isCross=true（跨服首领）：文案在首领名前加“跨服”二字，与普通（本服）首领区分，如“跨服卡坦即将刷新，会爆粉的哦”
 function speakFallback(name, isCross){
   try {
-    if (!('speechSynthesis' in window)) return;
+    if (!('speechSynthesis' in window)) return false;
+    // 窗口最小化/还原时，Chrome 会挂起 speechSynthesis 并把待播队列丢弃，
+    // 此时调用 speak() 不出声。若直接记「已播报」会导致还原后整整一分钟不再尝试。
+    // 这里先探测引擎是否真的可用，不可用就返回 false，让调用方跳过记账、下次重试。
+    try {
+      if (window.speechSynthesis.paused && !window.speechSynthesis.speaking){
+        window.speechSynthesis.resume();
+      }
+      // paused 为 true 说明引擎被挂起；resume() 后仍为 paused 视为不可用
+      if (window.speechSynthesis.paused) return false;
+    } catch(e){}
     const crossLabel = isCross ? '跨服' : '';
     const isFemale = FEMALE_BOSSES.has(name);
-    const text = (crossLabel + name) + (isFemale ? '即将刷新，会爆粉的哦' : '即将刷新，小臂噶不爆粉');
+    // 文案按类别分支（2026-10-16 用户要求）：
+    //   掉金 + 女声 -> "<首领>即将刷新，会爆金的哦"
+    //   掉粉 + 女声 -> "<首领>即将刷新，会爆粉的哦"
+    //   其余-> "<首领>即将刷新，小臂噶不爆粉"
+    let tail;
+    if (!isFemale) {
+      tail = '即将刷新，小臂噶不爆粉';
+    } else if (BAOJIN_BOSSES.has(name)) {
+      tail = '即将刷新，会爆金的哦';
+    } else {
+      tail = '即将刷新，会爆粉的哦';
+    }
+    const text = (crossLabel + name) + tail;
     const voice = isFemale ? _voiceFemale : _voiceMale;
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'zh-CN';
     if (voice) u.voice = voice;
     u.rate = 1.0; u.pitch = 1.0; u.volume = 1.0;   // 浏览器限制：音量上限 1.0
     window.speechSynthesis.speak(u);
-  } catch(e){}
+    return true;
+  } catch(e){
+    return false;
+  }
 }
 // 自动播报入口：浏览器内置 Web Speech 直接播报（全本地，不请求 Python 服务，关掉服务窗口也能播）。
 function speak(name, isCross){
-  if (!VOICE_ENABLED) return;                 // 总开关关闭时直接跳过（总开关行为照旧，不受子开关影响）
-  if (!voice_allowed(name)) return;           // 分项二次过滤：爆粉 / 非爆粉 可各自单独静音
-  speakFallback(name, isCross);
+  if (!VOICE_ENABLED) return false;             // 总开关关闭时直接跳过（总开关行为照旧，不受子开关影响）
+  if (!voice_allowed(name)) return false;        // 分项二次过滤：爆粉 / 非爆粉 可各自单独静音
+  return speakFallback(name, isCross);
 }
 // 浏览器自动播放策略：首次用户交互（点击/按键）后解锁 Web Speech（兜底用）
 function _unlockSpeech(){
@@ -269,6 +307,18 @@ function _unlockSpeech(){
   window.removeEventListener('click', _unlockSpeech);
   window.removeEventListener('keydown', _unlockSpeech);
 }
+// 窗口还原 / 页面重新可见时：立刻解锁语音引擎并清空播报记账，
+// 让错过的播报马上补上（Chrome 在最小化期间会挂起 speechSynthesis 并丢弃待播队列）。
+window.addEventListener('visibilitychange', function(){
+  if (document.visibilityState !== 'visible') return;
+  try { if ('speechSynthesis' in window) window.speechSynthesis.resume(); } catch(e){}
+  _pickVoices();
+  lastSpoken.clear();      // 允许立即重播，避免还原后要干等 60 秒
+  render();                // 立刻重渲染并触发补播
+});
+window.addEventListener('focus', function(){
+  try { if ('speechSynthesis' in window) window.speechSynthesis.resume(); } catch(e){}
+});
 if ('speechSynthesis' in window){
   _pickVoices();
   window.speechSynthesis.onvoiceschanged = _pickVoices;
@@ -284,8 +334,8 @@ function testSpeakFemale(){
   vstatEl.textContent = '🔊 正在试播【女声】…';
   vstatEl.style.color = '#1a7f37';
   try {
-    speakFallback('卡坦');   // 女声：卡坦即将刷新，会爆粉的哦
-    vstatEl.textContent = '🔊 已试播女声：「卡坦即将刷新，会爆粉的哦」。若没听到，请在系统“语音/语言”设置里确认已安装中文女声（如 Xiaoxiao）。';
+    speakFallback('卡坦');   // 卡坦属掉金类（BAOJIN_BOSSES），女声文案为「卡坦即将刷新，会爆金的哦」
+    vstatEl.textContent = '🔊 已试播女声：「卡坦即将刷新，会爆金的哦」（卡坦为掉金类）。若没听到，请在系统“语音/语言”设置里确认已安装中文女声（如 Xiaoxiao）。';
   } catch(e){
     const detail = (e && e.message) ? e.message : ('' + e);
     vstatEl.textContent = '❌ 女声语音播报失败：' + detail;
@@ -507,8 +557,11 @@ function render(){
         const key = e.name + '@' + e.ts;
         const lastT = lastSpoken.has(key) ? lastSpoken.get(key) : -Infinity;
         if (now - lastT >= ANNOUNCE_INTERVAL_MS){
-          lastSpoken.set(key, now);
-          speak(e.name, isCross);
+          // 只有真正播出去才记账。若 speak() 返回 false（引擎被挂起/窗口还原瞬间），
+          // 不写 lastSpoken，这样下一秒就会再次尝试，不会白白错过一整分钟。
+          if (speak(e.name, isCross)){
+            lastSpoken.set(key, now);
+          }
         }
         // 同一时间窗口内推送微信（独立去重：推送与语音互不影响）
         if (!pushed.has(key)){
@@ -516,9 +569,10 @@ function render(){
           pushWechat(e.name);
         }
       }
-      // 跨服首领 = 金色底层；爆粉 = 粉色底层；非爆粉 = 紫色底层
+      // 跨服首领 = 金色底层；掉金 = 橙色底层；掉粉 = 粉色底层；其余 = 紫色底层
       const isBaofen = BAOFEN_BOSSES.has(e.name);
-      let rowBg = isCross ? '#f7d774' : (isBaofen ? '#ffc2da' : '#d4b9ff');
+      const isBaojin = BAOJIN_BOSSES.has(e.name);
+      let rowBg = isCross ? '#f7d774' : (isBaojin ? '#ffb347' : (isBaofen ? '#ffc2da' : '#d4b9ff'));
       // 正在出现：红色文字加粗 + 左侧红条；下一个即将刷新：绿色文字加粗 + 左侧绿条
       let rowColor = '', borderLeft = '4px solid transparent', cdColor = '#1a6fb0', fontW = '400', probColor = e.prob_color;
       if (isAppearing){
@@ -604,7 +658,7 @@ document.getElementById('vtestM').addEventListener('click', function(){
 
 // 版本自检：每 5 分钟静默拉一次线上最新 HTML（no-store 绕过缓存），
 // 构建时间戳变化 → 自动强制刷新页面，访客无需手动刷新即可拿到最新推送数据
-const BUILD_TS = 1792080971047;
+const BUILD_TS = 1792082748263;
 if (location.protocol === 'http:' || location.protocol === 'https:') {
   setInterval(async function(){
     try {
