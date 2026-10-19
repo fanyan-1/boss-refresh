@@ -70,7 +70,7 @@
 <body>
 <div class="container">
   <h1>天堂2盟约 BOSS 刷新时间表</h1>
-  <div class="meta">报告生成时间：2026-10-19 12:27:33（重新运行脚本可读取最新游戏数据）</div>
+  <div class="meta">报告生成时间：2026-10-19 12:31:56（重新运行脚本可读取最新游戏数据）</div>
   <div class="meta" id="clock">当前北京时间：加载中…</div>
   <div class="meta" id="status">实时刷新中…</div>
   <div class="stats">
@@ -99,7 +99,7 @@
     <button id="vtestM" style="display:none">男声测试语音</button>
     <span id="vstat" style="margin-left:10px;color:#666"></span>
   </div>
-  <div class="meta" style="color:#e30000">自动翻页读取：本次共识别 23 个首领。脚本已自动滚动列表凑齐全部首领，无需手动翻页。其中 3 个无出没时间的概率首领按固定间隔+最近击杀时间推算（未叠加模拟偏移）。</div>
+  
   <div class="meta" style="margin:8px 0 12px;line-height:1.9">
     <span style="display:inline-block;padding:2px 10px;border-radius:4px;background:#ffc2da;margin-right:6px">粉底 = 掉粉</span>
     <span style="display:inline-block;padding:2px 10px;border-radius:4px;background:#ffb347;margin-right:6px">橙底 = 掉金</span>
@@ -665,7 +665,7 @@ document.getElementById('vtestM').addEventListener('click', function(){
 
 // 版本自检：每 5 分钟静默拉一次线上最新 HTML（no-store 绕过缓存），
 // 构建时间戳变化 → 自动强制刷新页面，访客无需手动刷新即可拿到最新推送数据
-const BUILD_TS = 1792384053351;
+const BUILD_TS = 1792384316139;
 if (location.protocol === 'http:' || location.protocol === 'https:') {
   setInterval(async function(){
     try {
