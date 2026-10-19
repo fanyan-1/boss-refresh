@@ -70,7 +70,7 @@
 <body>
 <div class="container">
   <h1>天堂2盟约 BOSS 刷新时间表</h1>
-  <div class="meta">报告生成时间：2026-10-19 16:58:41（重新运行脚本可读取最新游戏数据）</div>
+  <div class="meta">报告生成时间：2026-10-19 17:03:24（重新运行脚本可读取最新游戏数据）</div>
   <div class="meta" id="clock">当前北京时间：加载中…</div>
   <div class="meta" id="status">实时刷新中…</div>
   <div class="stats">
@@ -318,6 +318,7 @@ function speak(name, isCross){
 // 音频由 gen_voice_files.py 用 Windows 中文引擎离线生成，拆成「首领名 + 后缀」零件，
 // 页面按需顺序播放，避免组合爆炸（37 个片段共约 1.7MB）。
 const VOICE_CLIP_BASE = 'voice/';
+const VOICE_CLIP_MAP = {"_prefix_cross": "clip_00.wav", "_tail_baofen": "clip_01.wav", "_tail_baojin": "clip_02.wav", "_tail_male": "clip_03.wav", "佩尔利斯": "clip_04.wav", "凯索思": "clip_05.wav", "卡坦": "clip_06.wav", "卡雷斯": "clip_07.wav", "史坦": "clip_08.wav", "坦佛斯特": "clip_09.wav", "塔拉金": "clip_10.wav", "塔金": "clip_11.wav", "奥尔芬": "clip_12.wav", "安库拉": "clip_13.wav", "寇伦": "clip_14.wav", "巨蚁女王": "clip_15.wav", "巴实那": "clip_16.wav", "布赖卡": "clip_17.wav", "提米妮尔": "clip_18.wav", "提米特利斯": "clip_19.wav", "核心基座": "clip_20.wav", "梅杜莎": "clip_21.wav", "沙勒卡": "clip_22.wav", "潘柴特": "clip_23.wav", "潘纳洛德": "clip_24.wav", "特论巴": "clip_25.wav", "猛龙兽": "clip_26.wav", "瓦柏": "clip_27.wav", "突变克鲁玛": "clip_28.wav", "萨班": "clip_29.wav", "被污染的克鲁玛": "clip_30.wav", "贝希莫斯": "clip_31.wav", "赛鲁": "clip_32.wav", "采尔图巴": "clip_33.wav", "雷比鲁": "clip_34.wav", "魔图拉": "clip_35.wav", "黑色蕾尔莉": "clip_36.wav"};
 const _clipCache = {};      // url -> HTMLAudioElement（复用，避免重复下载）
 let  _audioUnlocked = false;   // 微信要求用户交互后才允许播音频
 
@@ -364,14 +365,20 @@ function playVoiceClips(name, isCross){
   try {
     if (!_audioUnlocked){ _unlockAudio(); return false; }
     const isFemale = FEMALE_BOSSES.has(name);
-    let tailFile;
-    if (!isFemale)tailFile = '_tail_male.wav';
-    else if (BAOJIN_BOSSES.has(name)) tailFile = '_tail_baojin.wav';
-    else                            tailFile = '_tail_baofen.wav';
+    let tailKey;
+    if (!isFemale)          tailKey = '_tail_male';
+    else if (BAOJIN_BOSSES.has(name)) tailKey = '_tail_baojin';
+    else                    tailKey = '_tail_baofen';
+    const keys = [];
+    if (isCross) keys.push('_prefix_cross');
+    keys.push(name);
+    keys.push(tailKey);
     const files = [];
-    if (isCross) files.push('_prefix_cross.wav');
-    files.push(name + '.wav');
-    files.push(tailFile);
+    for (const k of keys){
+      const f = VOICE_CLIP_MAP[k];
+      if (f) files.push(f);
+    }
+    if (!files.length) return false;
 
     let idx = 0;
     const next = function(){
@@ -753,7 +760,7 @@ document.getElementById('vtestM').addEventListener('click', function(){
 
 // 版本自检：每 5 分钟静默拉一次线上最新 HTML（no-store 绕过缓存），
 // 构建时间戳变化 → 自动强制刷新页面，访客无需手动刷新即可拿到最新推送数据
-const BUILD_TS = 1792400321055;
+const BUILD_TS = 1792400604487;
 if (location.protocol === 'http:' || location.protocol === 'https:') {
   setInterval(async function(){
     try {
