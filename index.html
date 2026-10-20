@@ -178,6 +178,7 @@ const statusEl = document.getElementById('status');
 // 跨服首领（带角标，e.cross=true）：两套文案均在首领名前加“跨服”二字，播报“跨服<首领>即将刷新…”，与本服一眼区分。
 // 各事件最近一次语音播报的时间戳（name@ts -> ts），用于“每 1 分钟播一次”
 const lastSpoken = new Map();
+const _pendingSpeak = new Set();
 let _speakFailUntil = 0;   // 播报失败退避：失败后 10 秒内不再重复触发（配合 speak() 返回 false 时不记账）
 const SPEAK_BEFORE_MS = 120000;    // 提前 2 分钟开始播报（进入此窗口后每 ANNOUNCE_INTERVAL_MS 播一次）
 const ANNOUNCE_INTERVAL_MS = 60000;// 语音播报最小间隔（每 1 分钟播一次）
@@ -308,21 +309,77 @@ function speakFallback(name, isCross){
     u.lang = 'zh-CN';
     if (voice) u.voice = voice;
     u.rate = 1.0; u.pitch = 1.0; u.volume = 1.0;   // 浏览器限制：音量上限 1.0
-    window.speechSynthesis.speak(u);
-    return true;
+
+    // —— 2026-10-21 关键修复：确认「真的出声」而不是「调用没报错」——
+    // 旧实现 speak() 后立刻 return true，调用方随即记账 lastSpoken，于是整分钟内不再重试。
+    // 但 Chrome 在以下情况会静默吞掉播报（speak() 不抛异常，却没声音）：
+    //   1) 标签页切到后台 / 窗口最小化，引擎被挂起（speechSynthesis.paused）
+    //   2) 浏览器自动播放策略：用户尚未与页面交互过，音频上下文处于 suspended
+    //   3) 系统语音服务临时不可用
+    // 这正是用户反馈「都勾选了但有时候没播报」的根因。
+    // 现在改为：监听 onstart 才认为成功；onerror 或超时则回报失败，让调用方不记账并快速重试。
+    const S = window.speechSynthesis;
+    const before = S.speaking ? 1 : 0;
+    let started = false, settled = false;
+    const cleanup = () => {
+      try { u.onstart = null; u.onend = null; u.onerror = null; } catch(e){}
+    };
+    u.onstart = () => { started = true; settled = true; cleanup(); _speakVerifyResult = true; };
+    u.onerror = (e) => {
+      settled = true; cleanup();
+      _speakVerifyResult = false;
+      _speakFailReason = (e && e.error) || 'error';
+    };
+    try { S.speak(u); } catch(e){ settled = true; cleanup(); return false; }
+
+    // 同步快速判定：部分平台（Android Chrome / 微信）onstart 会同步触发
+    if (started) return true;
+
+    // 引擎已在播别的（before 说明有陈旧队列）—— cancel 后重排，避免被丢弃
+    if (S.speaking || S.pending){
+      try { S.cancel(); } catch(e){}
+      // cancel 会触发本次 utterance 的 onerror(interrupted/canceled)，属预期，不算失败
+    }
+
+    // 异步等待 onstart 确认；超时视为未出声，回报失败以便重试
+    return waitSpeakVerify(u, settled);
   } catch(e){
     return false;
   }
 }
+
+// 等待 onstart 确认是否真的开始发声（Chrome/桌面端异步触发）
+let _speakVerifyResult = null;
+let _speakFailReason = '';
+const SPEAK_VERIFY_TIMEOUT_MS = 1200;
+function waitSpeakVerify(u, alreadySettled){
+  let done = false;
+  return new Promise(function(resolve){
+    if (alreadySettled){ resolve(!!_speakVerifyResult); return; }
+    const t = setTimeout(function(){
+      if (done) return; done = true;
+      resolve(false);   // 超时未收到 onstart：判定为「没出声」，不记账，交给下一帧重试
+    }, SPEAK_VERIFY_TIMEOUT_MS);
+    const h = () => { if (done) return; done = true; clearTimeout(t); resolve(true); };
+    const e = () => { if (done) return; done = true; clearTimeout(t); resolve(false); };
+    u.onstart = h; u.onerror = e;
+  });
+}
+
 // 自动播报入口：浏览器内置 Web Speech 直接播报（全本地，不请求 Python 服务，关掉服务窗口也能播）。
 function speak(name, isCross){
-  if (!VOICE_ENABLED) return false;             // 总开关关闭时直接跳过（总开关行为照旧，不受子开关影响）
-  if (!voice_allowed(name)) return false;        // 分项二次过滤：爆粉 / 非爆粉 可各自单独静音
+  if (!VOICE_ENABLED) return Promise.resolve(false);  // 总开关关闭时直接跳过
+  if (!voice_allowed(name)) return Promise.resolve(false); // 分项二次过滤
   // 语音引擎不可用（如微信内置浏览器）-> 改用预生成的 wav 片段顺序播放
   if (!voiceEngineUsable()){
-    return playVoiceClips(name, isCross);
+    return Promise.resolve(playVoiceClips(name, isCross));
   }
-  return speakFallback(name, isCross);
+  try {
+    const r = speakFallback(name, isCross);
+    return (r && typeof r.then === 'function') ? r : Promise.resolve(!!r);
+  } catch(err){
+    return Promise.resolve(false);
+  }
 }
 
 // —— 预生成音频兜底（微信等不支持 Web Speech 的环境）——
@@ -427,6 +484,7 @@ window.addEventListener('visibilitychange', function(){
   try { if ('speechSynthesis' in window) window.speechSynthesis.resume(); } catch(e){}
   _pickVoices();
   lastSpoken.clear();      // 允许立即重播，避免还原后要干等 60 秒
+  _pendingSpeak.clear();_speakFailUntil = 0;
   safeRender();                // 立刻重渲染并触发补播（safeRender 内部有 try 保护）
 });
 window.addEventListener('focus', function(){
@@ -669,7 +727,8 @@ function render(){
       if (!isAppearing && toSpawn > 0 && toSpawn <= SPEAK_BEFORE_MS){
         const key = e.name + '@' + e.ts;
         const lastT = lastSpoken.has(key) ? lastSpoken.get(key) : -Infinity;
-        if (now - lastT >= ANNOUNCE_INTERVAL_MS){
+        if (_pendingSpeak.has(key)) { /* 等待 onstart 确认中，本帧跳过 */ }
+        else if (now - lastT >= ANNOUNCE_INTERVAL_MS){
           // 只有真正播出去才记账。若speak() 返回 false（引擎被挂起/窗口还原瞬间/音频未解锁），
           // 不写 lastSpoken，这样下一秒就会再次尝试，不会白白错过一整分钟。
           // _speakFailUntil：连续失败时退避，避免每帧反复触发造成刷屏与性能浪费。
@@ -679,13 +738,28 @@ function render(){
             // 关键保护：speak() 在 render() 循环内被调用，而 render() 一旦抛异常就会中断，
             // 此时各日期块已被 tbody.innerHTML='' 清空却没来得及重建 -> 页面表格整片空白
             // （2026-10-19 用户反馈「到了播报时间，前面就没数据了」）。必须 try 兜住。
-            let _ok = false;
-            try { _ok = speak(e.name, isCross); } catch(err){ _ok = false; }
-            if (_ok){
+            let _p;
+            try { _p = speak(e.name, isCross); }
+            catch(err){ _speakFailUntil = now + 10000; _p = null; }
+            if (_p && typeof _p.then === 'function'){
+              const _issuedAt = now;
+              setTimeout(function(){ _pendingSpeak.delete(key); }, 2500);
+              _p.then(function(ok){
+                _pendingSpeak.delete(key);
+                const stillValid = (Date.now() - _issuedAt) < ANNOUNCE_INTERVAL_MS;
+                if (ok && stillValid){
+                  lastSpoken.set(key, _issuedAt);
+                  _speakFailUntil = 0;
+                } else {
+                  _speakFailUntil = Date.now() + 2000;
+                }
+              });
+              _pendingSpeak.add(key);
+            } else if (_p === true){
               lastSpoken.set(key, now);
               _speakFailUntil = 0;
             } else {
-              _speakFailUntil = now + 10000;   // 失败后等 10 秒再试
+              _speakFailUntil = now + 2000;
             }
           }
         }
