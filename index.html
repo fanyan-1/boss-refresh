@@ -450,12 +450,10 @@ function render(){
         }
       }
       // 视觉横幅每秒刷新一次倒计时（与语音并行，不受音频能力影响）
-      try { _renderAlertBanner(); } catch(err){}
-      // 掉金 = 金色底层；掉粉 = 粉色底层；其余（含跨服）= 紫色底层
-      // 2026-10-19 用户要求：掉金改金色底；跨服不再特殊配色，跟本服一样按掉金/掉粉/其他区分
+      // 跨服首领 = 金色底层；爆粉 = 粉色底层；非爆粉 = 紫色底层
+      // 2026-10-21 回滚到 10-10 原始配色：原版无独立「掉金」名单，跨服本身即金色底。
       const isBaofen = BAOFEN_BOSSES.has(e.name);
-      const isBaojin = BAOJIN_BOSSES.has(e.name);
-      let rowBg = isBaojin ? '#f7d774' : (isBaofen ? '#ffc2da' : '#d4b9ff');
+      let rowBg = isCross ? '#f7d774' : (isBaofen ? '#ffc2da' : '#d4b9ff');
       // 正在出现：红色文字加粗 + 左侧红条；下一个即将刷新：绿色文字加粗 + 左侧绿条
       let rowColor = '', borderLeft = '4px solid transparent', cdColor = '#1a6fb0', fontW = '400', probColor = e.prob_color;
       if (isAppearing){
